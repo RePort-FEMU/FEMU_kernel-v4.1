@@ -119,6 +119,9 @@ jobs:
       publish:
         runs-on: ubuntu-latest
         needs: [build-mipsel, build-mipseb, build-armel]
+        if: github.event_name == 'push'
+        permissions:
+          contents: write
         steps:
           - name: Checkout source
             uses: actions/checkout@v4
@@ -178,5 +181,4 @@ jobs:
                 ./artifacts/armel/kernel-armel-zImage.tar.gz
                 ./artifacts/armel/kernel-armel-vmlinux.tar.gz
             env:
-              GITHUB_TOKEN: ${{ secrets.KERNEL_BUILD_TOKEN }}
-              GITHUB_REPOSITORY: ${{ github.repository }}
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
