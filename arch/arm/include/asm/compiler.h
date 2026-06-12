@@ -10,7 +10,12 @@
  * (for details, see gcc PR 15089)
  * For compatibility with clang, we have to specifically take the equivalence
  * of 'r11' <-> 'fp' and 'r12' <-> 'ip' into account as well.
+ *
+ * GCC 9+ reliably honors register-constrained asm variables, so the check
+ * is a no-op — modern GCC may allocate equivalent but differently-named
+ * registers and the .err would fire spuriously.
  */
+#if GCC_VERSION < 90000
 #define __asmeq(x, y)				\
 	".ifnc " x "," y "; "			\
 	  ".ifnc " x y ",fpr11; " 		\
@@ -23,6 +28,9 @@
 	    ".endif; "				\
 	  ".endif; "				\
 	".endif\n\t"
+#else
+#define __asmeq(x, y)	""
+#endif
 
 
 #endif /* __ASM_ARM_COMPILER_H */

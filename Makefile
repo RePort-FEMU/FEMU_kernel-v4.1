@@ -771,6 +771,14 @@ KBUILD_CFLAGS   += $(call cc-option,-Werror=strict-prototypes)
 # Prohibit date/time macros, which would make the build non-deterministic
 KBUILD_CFLAGS   += $(call cc-option,-Werror=date-time)
 
+# Suppress GCC 8+ warning about aliases between functions with different
+# argument types (used by the SYSCALL_DEFINEx macro intentionally)
+KBUILD_CFLAGS   += $(call cc-option,-Wno-attribute-alias)
+
+# Suppress GCC 14+ warning about array bounds on pointer arithmetic patterns
+# used legitimately in the kernel (e.g. __stop_table - 1 passed to search_extable)
+KBUILD_CFLAGS   += $(call cc-option,-Wno-array-bounds)
+
 # use the deterministic mode of AR if available
 KBUILD_ARFLAGS := $(call ar-option,D)
 
