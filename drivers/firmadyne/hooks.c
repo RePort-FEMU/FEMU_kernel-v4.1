@@ -67,7 +67,10 @@
 	HOOK("do_execve", execve_hook, execve_probe) \
 	/* Hook forking of processes */ \
 	HOOK("do_fork", fork_hook, fork_probe) \
-/*	HOOK_RET("do_fork", NULL, fork_ret_hook, fork_ret_probe) */ \
+	/* Report the child PID via wake_up_new_task (runs in the parent's context, \
+	   one per successful fork); replaces the old do_fork return kretprobe, \
+	   which busy-spun in kretprobe_trampoline on MIPS. */ \
+	HOOK("wake_up_new_task", newtask_hook, newtask_probe) \
 	/* Hook process exit */ \
 	HOOK("do_exit", exit_hook, exit_probe) \
 	/* Hook sending of signals */ \
@@ -218,6 +221,14 @@ static void exit_hook(long code) {
 static void fork_hook(unsigned long clone_flags, unsigned long stack_start, unsigned long stack_size, int __user *parent_tidptr, int __user *child_tidptr) {
 	if (syscall & LEVEL_EXEC && strcmp("khelper", current->comm)) {
 		printk(KERN_INFO MODULE_NAME": do_fork[PID: %d (%s)]: clone_flags:0x%lx, stack_size:0x%lx\n", task_pid_nr(current), current->comm, clone_flags, stack_size);
+	}
+
+	jprobe_return();
+}
+
+static void newtask_hook(struct task_struct *p) {
+	if (syscall & LEVEL_EXEC && strcmp("khelper", current->comm)) {
+		printk(KERN_INFO MODULE_NAME": do_fork_ret[PID: %d (%s)] = %d\n", task_pid_nr(current), current->comm, task_pid_nr(p));
 	}
 
 	jprobe_return();
